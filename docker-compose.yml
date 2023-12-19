@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  dagster:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - .:/dagster
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: dagster
+      POSTGRES_PASSWORD: dagster
+      POSTGRES_DB: dagster
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  dbt:
+    image: fishtownanalytics/dbt:0.19.0
+    volumes:
+      - ./dbt:/dbt
+      - ./jaffle_shop:/dbt
+    working_dir: /dbt
+    command: dbt run
+
+  jupyter:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/dagster
+    depends_on:
+      - dagster
+  cube:
+     image: cubejs/cube:latest
+     ports:
+       - "4000:4000"
+     environment:
+       - CUBEJS_DB_TYPE=duckdb
+       - CUBEJS_API_SECRET=7445edc38e9556c5ff5a4ad93af9b6dddaebaaf18cb8696aae0cfedd9ae7e633
+       - CUBEJS_DB_DUCKDB_DATABASE=/data/datamart.duckdb
+       - CUBEJS_DEV_MODE=true  
+       # Add other environment variables as needed
+     volumes:
+      - ./duckdb:/data
+      - .:/cube/conf  
+     depends_on:
+       - postgres
+
+volumes:
+  postgres_data:

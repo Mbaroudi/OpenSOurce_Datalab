@@ -1,0 +1,8 @@
+dagit
+dagster-postgres
+dagster-pandas
+dagster-dbt
+jupyter
+dbt-postgres
+dagstermill
+dagster-cube
